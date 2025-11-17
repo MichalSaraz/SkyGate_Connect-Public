@@ -1,5 +1,5 @@
 using System.Linq.Expressions;
-using Application._Common;
+using Application.Abstractions;
 using Application.BaggageContext.Expressions;
 using Application.BaggageContext.Interfaces;
 using Application.FlightContext.Interfaces;
