@@ -1,0 +1,51 @@
+  services:
+    postgres:
+      image: postgres:15
+      restart: unless-stopped
+      env_file:
+        - .env
+      environment:
+        - POSTGRES_USER=${POSTGRES_USER:-postgres}
+        - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-secret}
+        - POSTGRES_DB=${POSTGRES_DB:-SkyGate}
+      ports:
+        - "5432:5432"
+      volumes:
+        - pgdata:/var/lib/postgresql/data
+    
+    mongo:
+      image: mongo:6
+      restart: unless-stopped
+      env_file:
+        - .env
+      environment:
+        - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME:-mongo}
+        - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD:-mongo}
+      ports:
+        - "27017:27017"
+      volumes:
+        - mongodata:/data/db
+    
+    web:
+      build:
+        context: .
+        dockerfile: Dockerfile
+      restart: unless-stopped
+      env_file:
+        - .env
+      ports:
+        - "5000:80"
+      depends_on:
+        - postgres
+        - mongo
+      environment:
+        - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Production}
+        - Token__Key=${TOKEN_KEY:-ChangeMeLocally}
+        - Token__Issuer=${TOKEN_ISSUER:-YourApp}
+        - ConnectionStrings__DefaultConnection=${ConnectionStrings__DefaultConnection:-Host=postgres;Database=skyGate_connect;Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD:-secret};Include Error Detail=true}
+        - ConnectionStrings__IdentityConnection=${ConnectionStrings__IdentityConnection:-Host=postgres;Database=skyGate_identity;Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD:-secret};Include Error Detail=true}
+        - Mongo__ConnectionString=${Mongo__ConnectionString:-mongodb://mongo:27017/SkyGateConnectActionHistory}
+  
+  volumes:
+    pgdata:
+    mongodata:
